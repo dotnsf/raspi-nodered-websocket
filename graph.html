@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>データグラフ化サンプル</title>
+    
+    <script type="text/javascript" src="//www.google.com/jsapi"></script>
+    <script type="text/javascript" src="//code.jquery.com/jquery-2.1.4.min.js"></script>
+    
+    <script type="text/javascript">
+      var wsUrl = 'ws://' + location.hostname + '/ws/sensor';
+      
+      var socket;
+      var lineData, lineOptions, lineChart;
+      var lines = new Array();
+      var cnt = 0;
+      
+      // Google Gauge
+      google.load("visualization", "1.0", {packages:["line"]});
+      google.setOnLoadCallback(drawChart);
+      function drawChart(){
+        // Data for chart
+        lineData = google.visualization.arrayToDataTable( lines );
+        
+        // Option for chart
+        lineOptions = {
+          width: 400, height: 200,
+          curveType: 'function',
+          legend: { position: 'bottom' }
+        };
+
+        lineChart = new google.charts.Line(document.getElementById('lineChart'));
+      };
+      
+      function connect() {
+        lines[0] = [];
+        socket = new WebSocket(wsUrl);
+        socket.onmessage = function(e) {
+          var sensorData = JSON.parse(e.data);
+          console.log( sensorData.d );
+
+/* グラフ化
+          // データの名前を配列の先頭に入力
+          if( lines[0].length == 0 ){
+            lines[0].push( '' );
+            $.each( sensorData.d, function( k, v ){
+              if( !isNaN( v ) ){
+                lines[0].push( k );
+              }else if( $.isArray( v ) ){
+                $.each( v, function( k1, v1 ){
+                  if( !isNaN( v1 ) ){
+                    lines[0].push( k + "_" + k1 );
+                  }
+                });
+              }
+            });
+          }
+          
+          // 古いデータを位置を１つずつずらして入力
+          if( cnt >= 100 ){
+            for( i = 1; i < cnt; i ++ ){
+              lines[i] = lines[i+1];
+            }
+          }else{
+            cnt ++;
+          }
+          
+          // 新たに入ってきたデータを配列の最後に入力
+          lines[cnt] = [];
+          lines[cnt].push( '' );
+          $.each( sensorData.d, function( k, v ){
+            if( !isNaN( v ) ){
+              if( v <= 1.0 && v >= -1.0 ) v *= 100;
+              lines[cnt].push( v );
+            }else if( $.isArray( v ) ){
+              $.each( v, function( k1, v1 ){
+                if( !isNaN( v1 ) ){
+                if( v1 <= 1.0 && v1 >= -1.0 ) v1 *= 100;
+                  lines[cnt].push( v1 );
+                }
+              });
+            }
+          });
+          lineData = google.visualization.arrayToDataTable( lines );
+          lineChart.draw(lineData, lineOptions);
+*/
+        };
+      };
+      
+      function disconnect() {
+        socket.close();
+      };
+        
+    </script>
+  </head>
+  <body onload="connect()">
+    <h1>データグラフ化サンプル</h1>
+    <div>
+      <table border="0">
+      <tr>
+      <td colspan="3"><div id="lineChart" style="width: 400px; height: 200px;"></div></td>
+      </tr>
+      </table>
+    </div>
+  </body>
+</html>
